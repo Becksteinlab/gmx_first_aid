@@ -1,0 +1,122 @@
+GMX_RESCUE - README
+===================
+
+Original SGI version from Bert de Groot and/or Peter Tieleman and/or
+others.  Program modified by Marc Baaden in 2003. Large file support
+added by Oliver Beckstein in 2004 and improved version for linux also
+by OB.
+
+The reason for an improved linux version (gmx_rescue64) is that the
+previous version could not handle large offsets (> 2^31)---lseek
+cannot handle them. Oliver rewrote it (using streams) for linux and
+named it gmx_rescue64. Probably works only for Linux.  The bonus is
+ftello, which reduces guessing offsets---it tells you at once where
+the next magic frame starts.
+
+Send questions for this current version to <baaden@smplinux.de>
+
+
+THE GMX_RESCUE UTILITY
+======================
+
+The original source code for this utility was mentioned on the Gromacs
+mailing list, and then posted by Bert de Groot and Peter Tieleman. The
+original version was adapted for SGI workstations.
+
+This version works on Linux and on SGI. The difference is in
+compilation.  Here are the two respective lines:
+
+ cc gmx_rescue.c -DLINUX -o gmx_rescue
+ cc gmx_rescue.c -DSGI -o gmx_rescue
+
+Support for opening large files was added by Oliver Beckstein (tested
+on Linux only) and needs compilation like:
+
+gcc -DLINUX -D_LARGEFILE64_SOURCE -o gmx_rescue gmx_rescue.c
+
+BUGS: this version has not got full LFS support: offsets > 2^31 are
+not supported. This is why one should now rather use the rewritten
+version and compile:
+
+gcc -DLARGEFILE -DLINUX -o gmx_rescue64 gmx_rescue64.c
+
+The program fulfills two functions: scanning for the offsets of each
+frame and extracting the part of the trajectory starting from a given
+offset.
+
+The basic approach is to cut out zones of a corrupted XTC file (eg
+when you get magic number or floating point exception errors with
+gmxcheck)
+
+
+SHORT USAGE NOTE
+================
+
+usage: ./gmx_rescue64 <filename> scan
+       ./gmx_rescue64 <filename> <rescue file> <offset>
+
+First find the offset in the vicinity of the last frame, using 'scan'
+mode (hint: redirect output to a file). Then extract the first half of
+the trajectory with trjconv. Extract the second half into <rescue
+file> by giving the appropriate offset.
+
+
+HOW TO RESCUE BROKEN XTC FILES
+==============================
+
+First use gmxcheck to get the number of frames that can still be read.
+Example:
+
+
+gmxcheck -f fpe_err.xtc
+[..]
+Checking file fpe_err.xtc
+Reading frame       0 time 5000.000
+# Atoms  64170
+Precision 0.001 (nm)
+Reading frame     720 time 5720.000   Floating point exception
+
+
+In the above example, frames 0 to 719 are ok. Extract them using
+trjconv like this:
+
+
+trjconv -f fpe_err.xtc -o part1.xtc -e 5719.5
+
+
+Now try to get at the data behind the error. Use gmx_rescue to
+determine the position of all frames as follows:
+
+
+gmx_rescue fpe_err.xtc scan > frames.txt
+
+
+The output should look like
+Frame  Delta  Offset
+    0      0  0
+[..]
+  719  59175  42551045
+  720  59180  42610225
+  721  59173  42669398
+  722  59175  42728573
+  723  59172  42787745
+[..]
+
+Get the offset from frame 723, which is 42787745 and hopefully marks
+the next "good" frame. Now cut the trajectory there. (Note: if the new
+trajectory exists already, the program marks an error. Please delete
+the file first.)
+
+
+gmx_rescue fpe_err.xtc part2.xtc 42787745
+
+
+Now let's check again with gmxcheck. If you still get errors, you have
+to repeat the above procedure. Once you got all parts that are fine,
+create a fixed trajectory like this:
+
+
+trjcat part1.xtc part2.xtc .. -o fixed.xtc
+
+
+
