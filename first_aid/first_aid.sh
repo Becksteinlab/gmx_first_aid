@@ -33,7 +33,7 @@ function find_next_good_frame() {
         return 1
     fi
     TMPOFFSET=$(echo $TMPSCAN | sed "s| | \n |g" \
-            | grep " $CHECKFRAME " -A 2 | tail -1 | tr -d " ")
+		    | grep " $CHECKFRAME " -A 2 | tail -1 | tr -d " ")
     echo -e "${GREEN}Found offset of $TMPOFFSET for frame $CHECKFRAME${NC}"
     echo -e "${GREEN}Extracting...${NC}"
     $GMXRESCUE $1 $TMPXTC $TMPOFFSET > /dev/null
