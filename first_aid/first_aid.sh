@@ -1,9 +1,11 @@
-export GMXRESCUE=$HOME/Library/gmx_rescue/gmx_rescue
-module load gromacs/5.1.3
-
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 NC='\033[0m'
+
+if [ -z ${GMXRESCUE} ]; then
+    echo 'Error: set the environment variable GMXRESCUE to point to the gmx_rescue64 binary.'
+    return 1
+fi
 
 function get_last_good_frame() {
     gmx check -f $1 2>&1 > /dev/null | tail -1 \
@@ -40,10 +42,10 @@ function find_next_good_frame() {
 }
 
 function combine_and_check() {
-    echo -e "${GREEN}Concatenating the two parts...${NC}"
+    echo -e "${GREEN}Concatenating the two trajectories...${NC}"
     gmx trjcat -f $1 $2 -o $3 
-    echo -e "${GREEN}Checking health of new trajectory...${NC}"
-    gmx check $3 || (echo -e "${RED}NOOOOOOOOOOO!${NC}" ; return 1) && (echo -e "${GREEN}DONE!${NC}" ; return 0)
+    echo -e "${GREEN}Checking integrity of new trajectory...${NC}"
+    gmx check -f $3 || (echo -e "${RED}Utility failed!${NC}" ; return 1) && (echo -e "${GREEN}Utility succeeded!${NC}" ; return 0)
 }   
 
 
