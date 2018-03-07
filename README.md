@@ -136,7 +136,7 @@ Reading frame      15 time 88452.000   Floating point exception (core dumped)
 
 This is where you `source` the `first_aid.sh`
 file. Make sure that `$GMXRESCUE` points to the `gmx_rescue64`
-binary and then `source `first_aid.sh`. This defines functions that
+binary and then `source first_aid.sh`. This defines functions that
 can then be used in your shell. Use the command:
 
 `strip_front_section corrupted.xtc part1.xtc`
