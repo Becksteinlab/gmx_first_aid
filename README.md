@@ -3,7 +3,7 @@ trajectory.
 
 The two common corruptions I have found are:
 
-    - Magic Number Errors
+- Magic Number Errors
 
     ```
     Command line:
@@ -26,7 +26,7 @@ The two common corruptions I have found are:
     -------------------------------------------------------
     ```
 
-    - Floating point exception
+- Floating point exception
 
     ```
     Command line:
