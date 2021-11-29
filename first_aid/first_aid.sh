@@ -43,7 +43,7 @@ function combine_and_check() {
     echo -e "${GREEN}Concatenating the two parts...${NC}"
     gmx trjcat -f $1 $2 -o $3 
     echo -e "${GREEN}Checking health of new trajectory...${NC}"
-    gmx check $3 || (echo -e "${RED}NOOOOOOOOOOO!${NC}" ; return 1) && (echo -e "${GREEN}DONE!${NC}" ; return 0)
+    gmx check $3 || (echo -e "${RED}Could not repair.${NC}" ; return 1) && (echo -e "${GREEN}Repaired.${NC}" ; return 0)
 }   
 
 
